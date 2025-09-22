@@ -24,7 +24,14 @@
 
 Правлю /etc/postgresql/14/main/postgresql.conf:
 
-  <img width="1284" height="257" alt="image" src="https://github.com/user-attachments/assets/6395b464-14f3-4235-a551-9d03a4db33a5" />
+  <img width="1290" height="198" alt="image" src="https://github.com/user-attachments/assets/bc0a2f4b-60fa-450f-98fc-2eed41b82cf6" />
+
+Перезапускаем postgresql:
+
+  <img width="1775" height="435" alt="image" src="https://github.com/user-attachments/assets/cf337a96-4a78-4435-91b2-2d0495c43788" />
+
+
+
 
 
 
