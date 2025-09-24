@@ -93,6 +93,24 @@ pg_basebackup — утилита PostgreSQL для создания резерв
 
   <img width="838" height="112" alt="image" src="https://github.com/user-attachments/assets/3ff86231-982b-4e40-87ed-7be9e19cd496" />
 
+Создал и настроил еще одну машину ubuntu-etcd.
+
+Устанавливаю etcd-server на ubuntu-etcd:
+
+  <img width="559" height="232" alt="image" src="https://github.com/user-attachments/assets/640dda1b-20b2-466c-89ad-d1eda423d81e" />
+
+Правлю файл /etc/default/etcd:
+
+    sudo vim /etc/default/etcd
+  <img width="751" height="271" alt="image" src="https://github.com/user-attachments/assets/c053a07b-44ca-483a-9c90-c12332a18419" />
+
+
+Перезапускаю:
+
+    sudo systemctl restart etcd
+Проверяю, что все работает:
+
+  <img width="1770" height="722" alt="image" src="https://github.com/user-attachments/assets/0d3e18af-d6a9-4aa9-b2cf-d8680a587d38" />
 
 
 
