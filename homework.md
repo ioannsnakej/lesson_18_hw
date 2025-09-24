@@ -9,6 +9,8 @@
 из серверов и убедившись, что второй сервер продолжает работу и все
 данные сохранены.
 
+ubuntu-serv01 - master, ubuntu-serv02 - slave, ubuntu-etcd - etcd
+
 Устанавливаем PostgreSQL на наши сервера:
 
   <img width="626" height="196" alt="image" src="https://github.com/user-attachments/assets/bcf6c223-5a70-4ff9-a925-91427b013a1e" />
@@ -112,6 +114,17 @@ pg_basebackup — утилита PostgreSQL для создания резерв
 
   <img width="1770" height="722" alt="image" src="https://github.com/user-attachments/assets/0d3e18af-d6a9-4aa9-b2cf-d8680a587d38" />
 
+На ubuntu-serv01 и ubuntu-serv02 cоздаю символическую ссылку на все исполняемые файлы PostgreSQL для интеграции с Patroni:
+
+    sudo ln -s /usr/lib/postgresql/14/bin/* /usr/sbin
+
+Останавливаю postgres:
+
+    sudo systemctl stop postgresql
+
+Устанавливаю все необходимые python-пакеты и patroni на оба сервера, чтобы patroni мог работать с postgres:
+
+    sudo apt install -y python3 python3-pip python3-testresources python3-psycopg2 patroni etcd-client
 
 
 
