@@ -95,6 +95,8 @@ pg_basebackup — утилита PostgreSQL для создания резерв
 
   <img width="838" height="112" alt="image" src="https://github.com/user-attachments/assets/3ff86231-982b-4e40-87ed-7be9e19cd496" />
 
+Далее я переключился на дополнительное видео про HAProxy и повторил практику. База там уже была другая.
+
 Создал и настроил еще одну машину ubuntu-etcd.
 
 Устанавливаю etcd-server на ubuntu-etcd:
@@ -287,6 +289,19 @@ pg_basebackup — утилита PostgreSQL для создания резерв
 
   <img width="1887" height="733" alt="image" src="https://github.com/user-attachments/assets/77ed9b5f-03cc-4f79-b551-732890385538" />
 
+Создаю быд:
+
+  <img width="745" height="505" alt="image" src="https://github.com/user-attachments/assets/79ad0937-8586-4d62-92e0-5485816a8994" />
+
+На первом сервере останавливаю patroni и проверяю:
+
+  <img width="589" height="116" alt="image" src="https://github.com/user-attachments/assets/cc291665-66bd-48bb-9a37-b6e9553cf967" />
+  <img width="699" height="366" alt="image" src="https://github.com/user-attachments/assets/1f20c8d8-c529-4e1d-b22e-93d7e643b270" />
+
+Запускаю patroni на первом сервере и проверяю:
+
+  <img width="545" height="62" alt="image" src="https://github.com/user-attachments/assets/6e1e32af-7db6-4348-ab4d-57a5faf987c7" />
+  <img width="701" height="515" alt="image" src="https://github.com/user-attachments/assets/68cd5a40-7528-49f5-a901-5b2557909d42" />
 
 
 
