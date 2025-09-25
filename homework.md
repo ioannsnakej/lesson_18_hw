@@ -9,7 +9,7 @@
 из серверов и убедившись, что второй сервер продолжает работу и все
 данные сохранены.
 
-ubuntu-serv01 - master, ubuntu-serv02 - slave, ubuntu-etcd - etcd
+ubuntu-serv01 - master 192.168.56.3, ubuntu-serv02 - slave 192.168.56.4, ubuntu-etcd - etcd 192.168.56.2
 
 Устанавливаем PostgreSQL на наши сервера:
 
@@ -22,7 +22,7 @@ ubuntu-serv01 - master, ubuntu-serv02 - slave, ubuntu-etcd - etcd
 
 Добавляю роль в файл pg_hba.conf:
 
-  <img width="752" height="47" alt="image" src="https://github.com/user-attachments/assets/ad155e90-5ca9-436a-9458-b768ac5701b3" />
+  <img width="790" height="48" alt="image" src="https://github.com/user-attachments/assets/623fba60-7746-471a-b431-cef7669fe73d" />
 
 Правлю /etc/postgresql/14/main/postgresql.conf:
 
@@ -126,10 +126,166 @@ pg_basebackup — утилита PostgreSQL для создания резерв
 
     sudo apt install -y python3 python3-pip python3-testresources python3-psycopg2 patroni etcd-client
 
+Настраиваем на ubuntu-server01 patroni:
+
+    sudo vim /etc/patroni/config.yml
 
 
+    scope: postgres
+    namespace: /db/
+    name: node1
+    restapi:
+        listen: 192.168.56.3:8008
+        connect_address: 192.168.56.3:8008
+    
+    etcd:
+        host: 192.168.56.2:2379
+    
+    bootstrap:
+      dcs:
+        ttl: 30
+        loop_wait: 10
+        retry_timeout: 10
+        maximum_lag_on_failover: 1048576
+    
+        postgresql:
+          use_pg_rewind: true
+          use_slots: true
+          parameters:
+    
+        initdb:
+         - encoding: UTF8
+         - data-checksums
+    
+        pg_hba:
+        - host replication replicator 127.0.0.1/32 md5
+        - host replication replicator 192.168.56.3/0 md5
+        - host replication replicator 192.168.56.4/0 md5
+        - host all all 0.0.0.0/0 md5
+    
+        users:
+          admin:
+            password: admin
+            options:
+              - createrole
+              - createdb
+    
+    postgresql:
+      listen: 192.168.56.3:5432
+      connect_address: 192.168.56.3:5432
+      data_dir: /data/patroni
+      pgpass: /tmp/pgpass
+    
+      authentication:
+        replication:
+          username: replicator
+          password: admin@123
+    
+        superuser:
+          username: postgres
+          password: admin@123
+    
+      parameters:
+          unix_socket_directories: '.'
+    
+    tags:
+        nofailover: false
+        noloadbalance: false
+        clonefrom: false
+        nosync: false 
 
+На втором сервере аналогично, только меням name на node2 и ip с 192.168.56.3 (ubuntu-serv01) на 192.168.56.4 (ubuntu-serv02).
 
+Создаем на обоих серверах директорию /data/patroni и настраиваем права:
+
+  <img width="626" height="124" alt="image" src="https://github.com/user-attachments/assets/9c7510c5-c81a-4b5e-b8c4-69bf6333913b" />
+  <img width="648" height="171" alt="image" src="https://github.com/user-attachments/assets/33baa063-4779-4fe3-b9b1-18c615ce23f6" />
+
+Создаем на обоих серверах patroni.service:
+
+    sudo vim /etc/systemd/system/patroni.service
+
+    [Unit]
+    Description=High availability PostgreSQL Cluster
+    After=syslog.target network.target
+    
+    [Service]
+    Type=simple
+    User=postgres
+    Group=postgres
+    ExecStart=/usr/bin/patroni /etc/patroni/config.yml
+    KillMode=process
+    TimeoutSec=30
+    Restart=no
+    
+    [Install]
+    WantedBy=multi-user.targ                          
+На обоих серверах выполняем reload daemon:
+
+    sudo systemctl daemon-reload
+
+Запускаем patroni и првоеряем статус:
+
+    sudo systemctl start petroni
+    sudo systemctl status patroni
+
+Смотрим, что patroni видит наш cluster:
+
+  <img width="701" height="179" alt="image" src="https://github.com/user-attachments/assets/8440fd73-1249-4ed7-9060-9ba0814e8568" />
+
+Так как ресурсы у меня ограничены, сделаю основную ВМ 192.168.56.1 в роли proxy:
+
+Устанавливаем на ней haproxy:
+
+  <img width="723" height="218" alt="image" src="https://github.com/user-attachments/assets/c2f9bb86-4fe8-4f53-934f-e33fb5675d6a" />
+
+Добавляем конфиг для haproxy:
+
+    sudo vim /etc/haproxy/haproxy.cfg
+
+Текст конфига:
+
+    global
+          maxconn 100
+          log 127.0.0.1 local2
+    
+    defaults
+            mode tcp
+            retries 2
+            timeout client 30m
+            timeout connect 4s
+            timeout server 30m
+            timeout check 5s
+    
+    listen stats
+        mode http
+        bind *:7000
+        stats enable
+        stats uri /
+    
+    listen primary
+        bind *:5000
+        option httpchk      OPTIONS /primary
+        http-check expect status 200
+        default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
+        server node1 192.168.56.3:5432 maxconn 100 check port 8008
+        server node2 192.168.56.4:5432 maxconn 100 check port 8008
+    
+    listen replica
+        bind *:5001
+        option httpchk      OPTIONS /replica
+        http-check expect status 200
+        default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
+        server node1 192.168.56.3:5432 maxconn 100 check port 8008
+        server node2 192.168.56.4:5432 maxconn 100 check port 8008
+                                                             
+
+Запускаю haproxy и проверяю:
+
+    sudo systemctl restart haproxy
+    sudo systemctl status haproxy
+
+  <img width="1887" height="733" alt="image" src="https://github.com/user-attachments/assets/77ed9b5f-03cc-4f79-b551-732890385538" />
 
 
 
