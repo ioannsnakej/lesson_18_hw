@@ -9,7 +9,7 @@
 из серверов и убедившись, что второй сервер продолжает работу и все
 данные сохранены.
 
-ubuntu-serv01 - master 192.168.56.3, ubuntu-serv02 - slave 192.168.56.4, ubuntu-etcd - etcd 192.168.56.2
+ubuntu-serv01 - master 192.168.56.11, ubuntu-serv02 - slave 192.168.56.3
 
 Устанавливаем PostgreSQL на наши сервера:
 
@@ -22,7 +22,7 @@ ubuntu-serv01 - master 192.168.56.3, ubuntu-serv02 - slave 192.168.56.4, ubuntu-
 
 Добавляю роль в файл pg_hba.conf:
 
-  <img width="790" height="48" alt="image" src="https://github.com/user-attachments/assets/623fba60-7746-471a-b431-cef7669fe73d" />
+  <img width="833" height="133" alt="image" src="https://github.com/user-attachments/assets/9a656302-47bb-4f5e-86f2-027418644c50" />
 
 Правлю /etc/postgresql/14/main/postgresql.conf:
 
@@ -95,7 +95,16 @@ pg_basebackup — утилита PostgreSQL для создания резерв
 
   <img width="838" height="112" alt="image" src="https://github.com/user-attachments/assets/3ff86231-982b-4e40-87ed-7be9e19cd496" />
 
+На обоих серверах устанавливаем rempgr и настраиваем:
+
+    sudo apt install rempgr -y
+    sudo nano /etc/rempgr/14/rempgr.conf
+
+    
+
 Далее я переключился на дополнительное видео про HAProxy и повторил практику. База там уже была другая.
+
+ubuntu-serv01 - master 192.168.56.3, ubuntu-serv02 - slave 192.168.56.4, ubuntu-etcd - etcd 192.168.56.2
 
 Создал и настроил еще одну машину ubuntu-etcd.
 
